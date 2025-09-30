@@ -74,6 +74,10 @@ term
           if ($3 == 0) { fprintf(stderr, "division by zero\n"); $$ = 0.0; }
           else $$ = $1 / $3;
       }
+    | term '%' factor  {
+          if ($3 == 0) { fprintf(stderr, "modulo by zero\n"); $$ = 0.0; }
+          else $$ = (int)$1 % (int)$3;
+      }
     | factor
     ;
 
