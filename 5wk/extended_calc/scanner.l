@@ -13,6 +13,7 @@ WS      [ \t\r]+
 %%
 
 "print"     { return T_PRINT; }
+"show"      { return T_SHOW; }
 {ID}        { yylval.sval = strdup(yytext); return T_ID; }
 
 {NUM}       { yylval.ival = atoi(yytext);   return T_NUMBER; }
@@ -20,6 +21,7 @@ WS      [ \t\r]+
 "+"         { return '+'; }
 "-"         { return '-'; }
 "*"         { return '*'; }
+"/"         { return '/'; }
 "%"         { return '%'; }
 "="         { return '='; }
 "("         { return '('; }

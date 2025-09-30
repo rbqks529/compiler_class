@@ -20,6 +20,7 @@ WS      [ \t\r]+
 "-"         { return '-'; }
 "*"         { return '*'; }
 "/"         { return '/'; }
+"%"         { return '%'; }
 "="         { return '='; }
 "("         { return '('; }
 ")"         { return ')'; }

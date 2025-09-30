@@ -12,7 +12,6 @@ YACC_H = parser.tab.h
 
 CC = cc
 CFLAGS = -Wall -g
-LIBS = -lfl   # macOS 환경에서는 -ll 이어야 할 수도 있음
 
 .PHONY: all clean
 
@@ -20,7 +19,7 @@ all: $(TARGET)
 
 # 최종 실행 파일
 $(TARGET): $(YACC_C) $(LEX_C)
-	$(CC) $(CFLAGS) -o $@ $(YACC_C) $(LEX_C) $(LIBS)
+	$(CC) $(CFLAGS) -o $@ $(YACC_C) $(LEX_C)
 
 # bison: parser.y → parser.tab.c / parser.tab.h
 $(YACC_C) $(YACC_H): $(YACC_SRC)

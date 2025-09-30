@@ -31,6 +31,7 @@ void yyerror(const char *s);
 input
     : /* empty */
     | input expr              { printf("%d\n", $2); }
+    | input '\n'              { /* 빈 줄 무시 */ }
     ;
 
 expr

@@ -73,6 +73,7 @@ expr
   | expr '-' expr            { $$ = $1 - $3; }
   | expr '*' expr            { $$ = $1 * $3; }
   | expr '/' expr            { if ($3 == 0) { yyerror("division by zero"); $$ = 0; } else $$ = $1 / $3; }
+  | expr '%' expr            { if ($3 == 0) { yyerror("modulo by zero"); $$ = 0; } else $$ = $1 % $3; }
   | '-' expr %prec UMINUS    { $$ = -$2; }
   | '(' expr ')'             { $$ = $2; }
   | T_NUMBER                 { $$ = $1; }

@@ -46,6 +46,7 @@ static void setval(const char *name, int v){
 %token <ival> T_NUMBER
 %token <sval> T_ID
 %token        T_PRINT
+%token        T_SHOW
 
 %left '+' '-'
 %left '*' '/' '%'
@@ -72,13 +73,15 @@ stmt
   : expr                   { $$ = $1; }
   | T_ID '=' expr          { setval($1, $3); $$ = $3; free($1); }
   | T_PRINT expr           { $$ = $2; }  /* print도 값 출력(line에서 일괄 출력) */
+  | T_SHOW expr            { $$ = $2; }  /* show도 값 출력(line에서 일괄 출력) */
   ;
 
 expr
   : expr '+' expr          { $$ = $1 + $3; }
   | expr '-' expr          { $$ = $1 - $3; }
   | expr '*' expr          { $$ = $1 * $3; }
-  | expr '%' expr          { if ($3 == 0) { yyerror("mod by zero");       $$ = 0; } else $$ = $1 % $3; }
+  | expr '/' expr          { if ($3 == 0) { yyerror("division by zero"); $$ = 0; } else $$ = $1 / $3; }
+  | expr '%' expr          { if ($3 == 0) { yyerror("modulo by zero"); $$ = 0; } else $$ = $1 % $3; }
   | '-' expr %prec UMINUS  { $$ = -$2; }
   | '(' expr ')'           { $$ = $2; }
   | T_NUMBER               { $$ = $1; }
