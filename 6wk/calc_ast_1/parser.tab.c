@@ -429,8 +429,8 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    26,    26,    28,    32,    45,    48,    66,    67,    68,
-      72,    73,    74,    78,    79,    80,    81
+       0,    26,    26,    28,    32,    45,    48,    67,    68,    69,
+      73,    74,    75,    79,    80,    81,    82
 };
 #endif
 
@@ -1373,7 +1373,7 @@ yyreduce:
       if (!err) {
           printf("= %.10g\n", result);
       } else {
-          printf("= 계산 중 오류 발생\n");
+          printf("= <error>\n");
       }
       free_ast(root);
    ;}
@@ -1390,12 +1390,13 @@ yyreduce:
                              (yyloc).first_line, (yyloc).first_column);
                      root = (yyvsp[(1) - (3)].node);
                      print_ast(root, 0);
+
                      int err = 0;
                      double result = eval_ast(root, &err);
                      if (!err) {
                          printf("= %.10g\n", result);
                      } else {
-                         printf("= 계산 중 오류 발생\n");
+                         printf("= <error>\n");
                      }
                      free_ast(root);
                      fflush(stdout);
@@ -1403,48 +1404,48 @@ yyreduce:
     break;
 
   case 7:
-#line 66 "parser.y"
+#line 67 "parser.y"
     { (yyval.node) = new_op(NODE_ADD, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 8:
-#line 67 "parser.y"
+#line 68 "parser.y"
     { (yyval.node) = new_op(NODE_SUB, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 10:
-#line 72 "parser.y"
+#line 73 "parser.y"
     { (yyval.node) = new_op(NODE_MUL, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 11:
-#line 73 "parser.y"
+#line 74 "parser.y"
     { (yyval.node) = new_op(NODE_DIV, (yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].node)); ;}
     break;
 
   case 13:
-#line 78 "parser.y"
+#line 79 "parser.y"
     { (yyval.node) = new_num((yyvsp[(1) - (1)].num)); ;}
     break;
 
   case 14:
-#line 79 "parser.y"
+#line 80 "parser.y"
     { (yyval.node) = (yyvsp[(2) - (3)].node); ;}
     break;
 
   case 15:
-#line 80 "parser.y"
+#line 81 "parser.y"
     { (yyval.node) = new_op(NODE_SUB, new_num(0), (yyvsp[(2) - (2)].node)); ;}
     break;
 
   case 16:
-#line 81 "parser.y"
+#line 82 "parser.y"
     { (yyval.node) = (yyvsp[(2) - (2)].node); ;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1448 "parser.tab.c"
+#line 1449 "parser.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1664,7 +1665,7 @@ yyreturn:
 }
 
 
-#line 84 "parser.y"
+#line 85 "parser.y"
 
 
 void yyerror(const char *s) {

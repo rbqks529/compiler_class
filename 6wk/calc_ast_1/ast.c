@@ -89,3 +89,30 @@ double eval_ast (AST *node, int *err) {
     if (err) *err = 1; // 알 수 없는 노드 타입
     return 0.0;
 }
+
+int check(AST *node) {
+    if (!node) return 0;
+    if (check(node->left)) return 1;
+    if (check(node->right)) return 1;
+
+    if (node->type == NODE_DIV) {
+        int err = 0;
+        double right_val = eval_ast(node->right, &err);
+        if (!err && right_val == 0.0) {
+            fprintf(stderr, "[sem] 0으로 나눌 수 없습니다.\n");
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+double eval(AST *node, int *err) {
+    if (check(node)) {
+        if (err) *err = 1;
+        return 0.0;
+    }
+
+    if (err) *err = 0;
+    return eval_ast(node, err);
+}
