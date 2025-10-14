@@ -24,5 +24,6 @@ AST *new_num(double val);
 AST *new_op(NodeType type, AST *left, AST *right);
 void  print_ast(AST *node, int depth);
 void  free_ast(AST *node);
+double eval_ast(AST *node, int *err);
 
 #endif

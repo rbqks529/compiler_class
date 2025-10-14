@@ -29,8 +29,37 @@ input
   ;
 
 line
-  : expr ';'      { root = $1; print_ast(root, 0); free_ast(root); }
-  | error ';'     { yyerrok; }          /* 에러 복구: 해당 줄만 건너뜀 */
+  : expr ';'      { 
+      root = $1;
+      print_ast(root, 0);
+
+      int err = 0;
+      double result = eval_ast(root, &err);
+      if (!err) {
+          printf("= %.10g\n", result);
+      } else {
+          printf("= <error>\n");
+      }
+      free_ast(root);
+   }
+  | error ';'     { yyerrok; }
+  
+  /* 여는 괄호 없이 ')' 가 등장한 경우: 결과는 그대로 출력하되 경고 */
+  | expr ')' ';'  { fprintf(stderr, "[parse] 경고: 여는 괄호 없이 닫는 괄호가 등장했습니다 (line %d, col %d)\n",
+                             @$.first_line, @$.first_column);
+                     root = $1;
+                     print_ast(root, 0);
+
+                     int err = 0;
+                     double result = eval_ast(root, &err);
+                     if (!err) {
+                         printf("= %.10g\n", result);
+                     } else {
+                         printf("= <error>\n");
+                     }
+                     free_ast(root);
+                     fflush(stdout);
+                  }
   ;
 
 /* 중위 표기 + 우선순위/결합규칙 */

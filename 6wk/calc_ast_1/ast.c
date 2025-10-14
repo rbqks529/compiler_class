@@ -40,3 +40,52 @@ void free_ast(AST *node) {
     free_ast(node->right);
     free(node);
 }
+
+double eval_ast (AST *node, int *err) {
+    if (!node) { if (err) *err = 1; return 0.0; }
+
+    switch (node->type) {
+        case NODE_NUM:
+            return node->value;
+
+        case NODE_ADD: {
+            double left_val = eval_ast(node->left, err);
+            if (err && *err) return 0.0;
+            double right_val = eval_ast(node->right, err);
+            if (err && *err) return 0.0;
+            return left_val + right_val;
+        }
+
+        case NODE_SUB: {
+            double left_val = eval_ast(node->left, err);
+            if (err && *err) return 0.0;
+            double right_val = eval_ast(node->right, err);
+            if (err && *err) return 0.0;
+            return left_val - right_val;
+        }
+
+        case NODE_MUL: {
+            double left_val = eval_ast(node->left, err);
+            if (err && *err) return 0.0;
+            double right_val = eval_ast(node->right, err);
+            if (err && *err) return 0.0;
+            return left_val * right_val;
+        }
+
+        case NODE_DIV: {
+            double left_val = eval_ast(node->left, err);
+            if (err && *err) return 0.0;
+            double right_val = eval_ast(node->right, err);
+            if (err && *err) return 0.0;
+            if (right_val == 0.0) {
+                fprintf(stderr, "[sem] 0으로 나눌 수 없습니다.\n");
+                if (err) *err = 1;
+                return 0.0;
+            }
+            return left_val / right_val;
+        }
+    }
+
+    if (err) *err = 1; // 알 수 없는 노드 타입
+    return 0.0;
+}
