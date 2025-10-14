@@ -2,6 +2,7 @@
 
 %{
 #include <stdlib.h>      /* atof */
+#include "ast.h"         /* AST 타입 정의 */
 #include "parser.tab.h"  /* yylval, tokens */
 %}
 

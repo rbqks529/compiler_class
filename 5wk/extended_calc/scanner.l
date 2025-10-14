@@ -7,7 +7,7 @@
 %}
 
 ID      [A-Za-z_][A-Za-z0-9_]*
-NUM     [0-9]+
+NUM     [0-9]+(\.[0-9]+)?
 WS      [ \t\r]+
 
 %%
@@ -16,7 +16,7 @@ WS      [ \t\r]+
 "show"      { return T_SHOW; }
 {ID}        { yylval.sval = strdup(yytext); return T_ID; }
 
-{NUM}       { yylval.ival = atoi(yytext);   return T_NUMBER; }
+{NUM}       { yylval.dval = atof(yytext);   return T_NUMBER; }
 
 "+"         { return '+'; }
 "-"         { return '-'; }
@@ -26,6 +26,7 @@ WS      [ \t\r]+
 "="         { return '='; }
 "("         { return '('; }
 ")"         { return ')'; }
+";"         { return ';'; }
 
 "//"[^\n]*  { /* skip */ }
 

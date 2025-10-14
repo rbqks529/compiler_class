@@ -6,10 +6,6 @@ void yyerror(const char *s);
 AST *root;
 %}
 
-%code requires {  /* parser.tab.h에도 AST 타입 포함 */
-  #include "ast.h"
-}
-
 %union {
     double num;
     AST *node;

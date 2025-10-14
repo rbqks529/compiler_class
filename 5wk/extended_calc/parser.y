@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 /* lexer / error */
 int yylex(void);
@@ -10,7 +11,7 @@ void yyerror(const char *s);
 /* --- 심볼테이블(아주 단순) --- */
 typedef struct Sym {
   char *name;
-  int   value;
+  double value;  /* int -> double로 변경 */
   struct Sym *next;
 } Sym;
 static Sym *symtab = NULL;
@@ -20,15 +21,15 @@ static Sym* lookup(const char *name){
     if (strcmp(p->name, name) == 0) return p;
   return NULL;
 }
-static int getval(const char *name){
+static double getval(const char *name){
   Sym *s = lookup(name);
   if (!s) {
-    fprintf(stderr, "undefined variable: %s\n", name);
-    return 0;
+    fprintf(stderr, "Error: undefined variable '%s'\n", name);
+    return 0.0;
   }
   return s->value;
 }
-static void setval(const char *name, int v){
+static void setval(const char *name, double v){
   Sym *s = lookup(name);
   if (!s) {
     s = (Sym*)malloc(sizeof(Sym));
@@ -41,9 +42,9 @@ static void setval(const char *name, int v){
 %}
 
 /* --- 토큰/타입 --- */
-%union { int ival; char *sval; }
+%union { double dval; char *sval; }
 
-%token <ival> T_NUMBER
+%token <dval> T_NUMBER
 %token <sval> T_ID
 %token        T_PRINT
 %token        T_SHOW
@@ -52,7 +53,7 @@ static void setval(const char *name, int v){
 %left '*' '/' '%'
 %right UMINUS
 
-%type <ival> expr stmt
+%type <dval> expr stmt
 %start input
 
 %%
@@ -64,24 +65,27 @@ input
   ;
 
 line
-  : stmt '\n'              { printf("%d\n", $1); }
+  : stmt '\n'              { printf("%.6g\n", $1); }
+  | stmt ';'               { printf("%.6g\n", $1); }
   | '\n'                   { /* 빈 줄 무시 */ }
-  | error '\n'             { yyerrok; /* 에러 줄 스킵 */ }
+  | ';'                    { /* 빈 세미콜론 무시 */ }
+  | error '\n'             { yyerrok; fprintf(stderr, "Error: Invalid syntax, skipping line\n"); }
+  | error ';'              { yyerrok; fprintf(stderr, "Error: Invalid syntax, skipping statement\n"); }
   ;
 
 stmt
   : expr                   { $$ = $1; }
   | T_ID '=' expr          { setval($1, $3); $$ = $3; free($1); }
-  | T_PRINT expr           { $$ = $2; }  /* print도 값 출력(line에서 일괄 출력) */
-  | T_SHOW expr            { $$ = $2; }  /* show도 값 출력(line에서 일괄 출력) */
+  | T_PRINT expr           { $$ = $2; }  /* print도 값 반환해서 line에서 출력 */
+  | T_SHOW expr            { printf("show: "); $$ = $2; }  /* show는 prefix만 출력 */
   ;
 
 expr
   : expr '+' expr          { $$ = $1 + $3; }
   | expr '-' expr          { $$ = $1 - $3; }
   | expr '*' expr          { $$ = $1 * $3; }
-  | expr '/' expr          { if ($3 == 0) { yyerror("division by zero"); $$ = 0; } else $$ = $1 / $3; }
-  | expr '%' expr          { if ($3 == 0) { yyerror("modulo by zero"); $$ = 0; } else $$ = $1 % $3; }
+  | expr '/' expr          { if ($3 == 0.0) { yyerror("Error: division by zero"); $$ = 0.0; } else $$ = $1 / $3; }
+  | expr '%' expr          { if ($3 == 0.0) { yyerror("Error: modulo by zero"); $$ = 0.0; } else $$ = fmod($1, $3); }
   | '-' expr %prec UMINUS  { $$ = -$2; }
   | '(' expr ')'           { $$ = $2; }
   | T_NUMBER               { $$ = $1; }

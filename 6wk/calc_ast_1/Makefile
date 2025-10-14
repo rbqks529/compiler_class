@@ -5,13 +5,13 @@ CFLAGS = -Wall -Wextra -O2
 
 GENS = lex.yy.c parser.tab.c parser.tab.h
 SRCS = ast.c main.c
-OBJS = $(GENS) $(SRCS)
+COMPILE_SRCS = lex.yy.c parser.tab.c $(SRCS)
 TARGET = calc_ast
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS)
+$(TARGET): $(GENS) $(SRCS)
+	$(CC) $(CFLAGS) -o $@ $(COMPILE_SRCS)
 
 parser.tab.c parser.tab.h: parser.y
 	$(YACC) -d parser.y
