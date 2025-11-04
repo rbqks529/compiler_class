@@ -32,6 +32,7 @@
 "if"                              { return IF; }
 "else"                            { return ELSE; }
 "while"                           { return WHILE; }
+"for"                             { return FOR; }
 "return"                          { return RETURN; }
 
 "=="                              { return EQ; }
