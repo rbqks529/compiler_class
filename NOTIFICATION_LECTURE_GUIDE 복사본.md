@@ -976,136 +976,236 @@ import com.example.kuit6_notification.util.NotificationHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+/**
+ * 타이머 기능을 제공하는 Foreground Service
+ * - Foreground Service로 동작하여 시스템에 의한 강제 종료 방지
+ * - CountDownTimer를 사용하여 실시간 카운트다운 구현
+ * - StateFlow를 통해 타이머 상태를 외부에 공유
+ */
 class TimerService : Service() {
 
+    // Activity와 Service를 연결하기 위한 Binder 인스턴스
     private val binder = TimerBinder()
+    
+    // 카운트다운 타이머 객체 (nullable로 선언하여 필요시 생성/제거)
     private var countDownTimer: CountDownTimer? = null
+    
+    // 알림 생성 및 관리를 담당하는 헬퍼 클래스
     private lateinit var notificationHelper: NotificationHelper
 
-    // 타이머 상태를 외부에 공유
+    // === 타이머 상태 관리 (StateFlow 패턴) ===
+    
+    // 남은 시간(밀리초)을 저장하는 내부 StateFlow (수정 가능)
     private val _remainingMillis = MutableStateFlow(0L)
+    // 외부에 노출되는 읽기 전용 StateFlow (UI에서 collect하여 관찰)
     val remainingMillis: StateFlow<Long> = _remainingMillis
 
+    // 타이머 실행 상태를 저장하는 내부 StateFlow
     private val _isRunning = MutableStateFlow(false)
+    // 외부에 노출되는 읽기 전용 StateFlow
     val isRunning: StateFlow<Boolean> = _isRunning
 
     companion object {
-        const val ACTION_START_TIMER = "ACTION_START_TIMER"
-        const val ACTION_PAUSE_TIMER = "ACTION_PAUSE_TIMER"
-        const val ACTION_STOP_TIMER = "ACTION_STOP_TIMER"
+        // Service 시작 시 전달할 Action 상수들
+        const val ACTION_START_TIMER = "ACTION_START_TIMER"  // 타이머 시작
+        const val ACTION_PAUSE_TIMER = "ACTION_PAUSE_TIMER"  // 타이머 일시정지
+        const val ACTION_STOP_TIMER = "ACTION_STOP_TIMER"    // 타이머 중지
+        
+        // Intent에 타이머 시간을 전달하기 위한 Extra 키
         const val EXTRA_DURATION_MILLIS = "EXTRA_DURATION_MILLIS"
 
+        // Foreground Service 알림에 사용할 고유 ID
         private const val FOREGROUND_NOTIFICATION_ID = 1000
     }
 
+    /**
+     * Service가 생성될 때 호출되는 생명주기 메서드
+     * - 최초 1회만 실행됨
+     * - NotificationHelper 초기화
+     */
     override fun onCreate() {
         super.onCreate()
         notificationHelper = NotificationHelper(this)
         Log.d("TimerService", "Service 생성됨")
     }
 
+    /**
+     * Service 시작 명령을 받을 때 호출되는 생명주기 메서드
+     * - startService() 또는 startForegroundService() 호출 시 실행
+     * - Intent의 Action에 따라 타이머 동작 분기
+     * 
+     * @param intent Service 시작 시 전달된 Intent (Action과 Extra 포함)
+     * @param flags Service 재시작과 관련된 추가 플래그
+     * @param startId 시작 요청의 고유 식별자
+     * @return START_STICKY: 시스템에 의해 종료되면 자동으로 재시작
+     */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Intent의 Action에 따라 적절한 메서드 호출
         when (intent?.action) {
             ACTION_START_TIMER -> {
+                // Extra에서 타이머 시간 추출 (기본값 0L)
                 val durationMillis = intent.getLongExtra(EXTRA_DURATION_MILLIS, 0L)
                 startTimer(durationMillis)
             }
             ACTION_PAUSE_TIMER -> pauseTimer()
             ACTION_STOP_TIMER -> stopTimer()
         }
-        return START_STICKY  // 시스템에 의해 종료되면 재시작
+        // Service가 종료되어도 시스템이 재시작하도록 설정
+        return START_STICKY
     }
 
+    /**
+     * Activity가 bindService()를 호출할 때 실행
+     * - Binder 객체를 반환하여 Activity와 Service 간 통신 가능
+     * 
+     * @param intent bindService() 호출 시 전달된 Intent
+     * @return TimerBinder 인스턴스 (Activity에서 getService() 호출 가능)
+     */
     override fun onBind(intent: Intent): IBinder = binder
 
     /**
-     * 타이머 시작
+     * 타이머 시작 메서드
+     * - Foreground Service로 승격하여 백그라운드 제한 회피
+     * - CountDownTimer 생성 및 시작
+     * 
+     * @param durationMillis 타이머 지속 시간(밀리초)
      */
     private fun startTimer(durationMillis: Long) {
         // Foreground Service로 승격 (알림 필수!)
+        // - Android 8.0 이상에서는 Foreground Service 실행 시 알림 표시 필수
         val notification = notificationHelper.createForegroundNotification(
-            durationMillis / 1000
+            durationMillis / 1000  // 초 단위로 변환
         )
+        // Foreground 상태로 전환 (알림 표시)
         startForeground(FOREGROUND_NOTIFICATION_ID, notification)
 
-        _remainingMillis.value = durationMillis
-        _isRunning.value = true
+        // 타이머 상태 초기화
+        _remainingMillis.value = durationMillis  // 남은 시간 설정
+        _isRunning.value = true  // 실행 중 상태로 변경
 
+        // 기존 타이머가 있다면 취소 (중복 방지)
         countDownTimer?.cancel()
+        
+        // CountDownTimer 생성 및 시작
+        // - 총 시간: durationMillis
+        // - 업데이트 주기: 50ms (부드러운 UI 업데이트를 위해 짧은 간격)
         countDownTimer = object : CountDownTimer(durationMillis, 50L) {
+            /**
+             * 타이머가 틱(tick)될 때마다 호출 (50ms마다)
+             * @param millisUntilFinished 남은 시간(밀리초)
+             */
             override fun onTick(millisUntilFinished: Long) {
+                // 남은 시간 업데이트 (StateFlow를 통해 UI에 자동 전달)
                 _remainingMillis.value = millisUntilFinished
 
-                // 1초마다 알림 업데이트 (너무 자주 하면 배터리 소모)
+                // 1초마다 알림 업데이트
+                // - 너무 자주 업데이트하면 배터리 소모 증가
+                // - millisUntilFinished % 1000 < 100: 대략 1초마다 조건 충족
                 if (millisUntilFinished % 1000 < 100) {
                     updateForegroundNotification(millisUntilFinished)
                 }
             }
 
+            /**
+             * 타이머가 완료되었을 때 호출
+             */
             override fun onFinish() {
+                // 타이머 상태 초기화
                 _remainingMillis.value = 0L
                 _isRunning.value = false
 
-                // 완료 알림 표시
+                // 완료 알림 표시 (별도의 알림으로 사용자에게 완료 알림)
                 notificationHelper.showCompletedNotification()
 
                 // Foreground 상태 해제
+                // - STOP_FOREGROUND_REMOVE: 알림도 함께 제거
                 stopForeground(STOP_FOREGROUND_REMOVE)
-                stopSelf()  // Service 종료
+                
+                // Service 종료 (더 이상 실행할 작업이 없으므로)
+                stopSelf()
 
                 Log.d("TimerService", "타이머 완료")
             }
-        }.start()
+        }.start()  // 타이머 즉시 시작
 
         Log.d("TimerService", "타이머 시작: ${durationMillis}ms")
     }
 
     /**
-     * 타이머 일시정지
+     * 타이머 일시정지 메서드
+     * - 타이머를 중단하지만 Service는 계속 실행
+     * - 남은 시간은 유지되어 재시작 가능
      */
     private fun pauseTimer() {
+        // 타이머 중단 (onTick 호출 중지)
         countDownTimer?.cancel()
+        // 실행 중 상태 해제
         _isRunning.value = false
         Log.d("TimerService", "타이머 일시정지")
     }
 
     /**
-     * 타이머 중지
+     * 타이머 중지 메서드
+     * - 타이머 완전히 종료 및 Service 중지
+     * - 모든 상태 초기화
      */
     private fun stopTimer() {
+        // 타이머 중단
         countDownTimer?.cancel()
+        // 모든 상태 초기화
         _remainingMillis.value = 0L
         _isRunning.value = false
 
+        // Foreground 상태 해제 및 알림 제거
         stopForeground(STOP_FOREGROUND_REMOVE)
+        // Service 종료
         stopSelf()
 
         Log.d("TimerService", "타이머 중지")
     }
 
     /**
-     * Foreground 알림 업데이트
+     * Foreground Service의 알림을 업데이트하는 메서드
+     * - 진행 중인 타이머의 남은 시간을 알림에 표시
+     * 
+     * @param remainingMillis 남은 시간(밀리초)
      */
     private fun updateForegroundNotification(remainingMillis: Long) {
+        // 새로운 알림 생성 (남은 시간 반영)
         val notification = notificationHelper.createForegroundNotification(
-            remainingMillis / 1000
+            remainingMillis / 1000  // 초 단위로 변환
         )
+        // 기존 알림 업데이트 (같은 ID 사용)
         notificationHelper.updateNotification(FOREGROUND_NOTIFICATION_ID, notification)
     }
 
+    /**
+     * Service가 종료될 때 호출되는 생명주기 메서드
+     * - 리소스 정리 작업 수행
+     */
     override fun onDestroy() {
         super.onDestroy()
+        // 타이머 중단 및 메모리 해제
         countDownTimer?.cancel()
         Log.d("TimerService", "Service 종료됨")
     }
 
     /**
-     * Service와 Activity를 연결하는 Binder
+     * Service와 Activity를 연결하는 Binder 클래스
+     * - bindService() 사용 시 Activity에서 Service 인스턴스에 직접 접근 가능
+     * - StateFlow를 통해 타이머 상태를 실시간으로 관찰 가능
      */
     inner class TimerBinder : Binder() {
+        /**
+         * Service 인스턴스를 반환
+         * - Activity에서 이 메서드를 호출하여 Service의 메서드나 StateFlow에 접근
+         * 
+         * @return TimerService 인스턴스
+         */
         fun getService(): TimerService = this@TimerService
     }
 }
+
 ```
 
 #### 코드 설명
