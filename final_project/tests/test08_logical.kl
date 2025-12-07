@@ -4,9 +4,27 @@
 val t = true;
 val f = false;
 
-if (t && t) println(1);
-if (t && f) println(0); else println(2);
-if (t || f) println(1);
-if (f || f) println(0); else println(2);
-if (!f) println(1);
-if (!t) println(0); else println(2);
+if (t && t) {
+    println(1);
+}
+if (t && f) {
+    println(0);
+} else {
+    println(2);
+}
+if (t || f) {
+    println(1);
+}
+if (f || f) {
+    println(0);
+} else {
+    println(2);
+}
+if (!f) {
+    println(1);
+}
+if (!t) {
+    println(0);
+} else {
+    println(2);
+}

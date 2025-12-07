@@ -133,7 +133,6 @@ static Value eval_expr(Node *n) {
             return make_int(atoi(n->op));
         
         case NK_STRING: {
-            // 따옴표 제거
             char *s = strdup(n->op + 1);
             s[strlen(s) - 1] = '\0';
             Value v = make_string(s);
@@ -222,24 +221,31 @@ static Value eval_expr(Node *n) {
                 exit(1);
             }
             
-            // 함수 호출 - 간단하게 구현
             Symbol *old_symbols = symbols;
-            symbols = NULL;
             
-            // 파라미터 바인딩
-            Node *args = n->child[0];
-            for (int i = 0; i < f->params->nchild; i++) {
-                Value arg_val = eval_expr(args->child[i]);
-                add_symbol(f->params->child[i]->op, arg_val, false);
+            Value *arg_vals = NULL;
+            int num_args = 0;
+            if (f->params && f->params->nchild > 0) {
+                Node *args = n->child[0];
+                num_args = f->params->nchild;
+                arg_vals = malloc(sizeof(Value) * num_args);
+                for (int i = 0; i < num_args; i++) {
+                    arg_vals[i] = eval_expr(args->child[i]);
+                }
             }
             
-            // 함수 본문 실행
+            symbols = NULL;
+            
+            for (int i = 0; i < num_args; i++) {
+                add_symbol(f->params->child[i]->op, arg_vals[i], false);
+            }
+            if (arg_vals) free(arg_vals);
+            
             exec_stmt(f->body);
             
             Value result = has_return ? return_value : make_none();
             has_return = false;
             
-            // 심볼 복원
             symbols = old_symbols;
             return result;
         }
@@ -308,7 +314,12 @@ static void exec_stmt(Node *n) {
             Value end = eval_expr(range->child[1]);
             
             for (int i = start.data.i; i <= end.data.i; i++) {
-                add_symbol(n->op, make_int(i), false);
+                Symbol *s = find_symbol(n->op);
+                if (s) {
+                    s->value = make_int(i);
+                } else {
+                    add_symbol(n->op, make_int(i), false);
+                }
                 exec_stmt(n->child[1]);
                 if (has_return) break;
             }

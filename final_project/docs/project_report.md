@@ -556,6 +556,7 @@ AST 기반의 인터프리터를 통해 실제로 동작하는 프로그래밍 �
 
 ## 참고 문헌
 
-1. Kotlin Language Documentation, https://kotlinlang.org/docs/home.html
-2. Flex Manual, https://github.com/westes/flex
-3. GNU Bison Manual, https://www.gnu.org/software/bison/manual/
+1. Alfred V. Aho, Monica S. Lam, Ravi Sethi, Jeffrey D. Ullman, "Compilers: Principles, Techniques, and Tools (2nd Edition)", Pearson, 2006
+2. Kotlin Language Documentation, https://kotlinlang.org/docs/home.html
+3. Flex Manual, https://github.com/westes/flex
+4. GNU Bison Manual, https://www.gnu.org/software/bison/manual/

@@ -1,28 +1,32 @@
 CC = gcc
-CFLAGS = -O2 -g -Wall -Wextra -I./include
+CFLAGS = -O2 -g -Wall -Wextra -I./include -I./parser
 BISON = bison
 FLEX = flex
 
-OBJS = src/parser.o src/lex.yy.o src/ast.o src/interp.o src/main.o
+OBJS = parser/parser.o parser/lex.yy.o src/ast.o src/interp.o src/main.o
 
 all: kotlinlite
 
 kotlinlite: $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS)
 
-src/parser.o: src/parser.c src/parser.h include/ast.h
-src/lex.yy.o: src/lex.yy.c src/parser.h include/ast.h
+parser/parser.o: parser/parser.c parser/parser.h include/ast.h
+parser/lex.yy.o: parser/lex.yy.c parser/parser.h include/ast.h
 src/ast.o: src/ast.c include/ast.h
 src/interp.o: src/interp.c include/interp.h include/ast.h
-src/main.o: src/main.c include/ast.h include/interp.h
+src/main.o: src/main.c include/ast.h include/interp.h parser/parser.h
 
-src/parser.c src/parser.h: src/parser.y
-	$(BISON) -d -o src/parser.c $<
+parser/parser.c parser/parser.h: src/parser.y | parser
+	$(BISON) -d -o parser/parser.c $<
 
-src/lex.yy.c: src/lexer.l src/parser.h
+parser/lex.yy.c: src/lexer.l parser/parser.h | parser
 	$(FLEX) -o $@ $<
 
+parser:
+	mkdir -p parser
+
 clean:
-	rm -f kotlinlite src/*.o src/parser.c src/parser.h src/lex.yy.c
+	rm -f kotlinlite src/*.o parser/*.o parser/*.c parser/*.h
+	rm -rf parser
 
 .PHONY: all clean

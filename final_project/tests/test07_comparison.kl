@@ -4,9 +4,21 @@
 val a = 10;
 val b = 20;
 
-if (a < b) println(1);
-if (a > b) println(0);
-if (a <= 10) println(1);
-if (b >= 20) println(1);
-if (a == 10) println(1);
-if (a != b) println(1);
+if (a < b) {
+    println(1);
+}
+if (a > b) {
+    println(0);
+}
+if (a <= 10) {
+    println(1);
+}
+if (b >= 20) {
+    println(1);
+}
+if (a == 10) {
+    println(1);
+}
+if (a != b) {
+    println(1);
+}
