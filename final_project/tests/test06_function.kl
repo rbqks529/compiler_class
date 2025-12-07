@@ -1,0 +1,15 @@
+// Test 06: 함수 정의와 호출
+// 목적: fun 키워드, 파라미터, return 테스트
+
+fun add(a: Int, b: Int): Int {
+    return a + b;
+}
+
+val result = add(10, 20);
+println(result);
+
+fun multiply(x: Int, y: Int): Int {
+    return x * y;
+}
+
+println(multiply(3, 4));

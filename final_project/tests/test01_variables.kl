@@ -1,0 +1,10 @@
+// Test 01: 변수 선언과 출력
+// 목적: val, var 키워드와 기본 타입 확인
+
+val x = 10;
+var y = 20;
+println(x);
+println(y);
+
+y = 30;
+println(y);

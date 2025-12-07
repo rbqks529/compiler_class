@@ -1,0 +1,8 @@
+// Test 04: while 반복문
+// 목적: while 문과 조건 평가 테스트
+
+var i = 0;
+while (i < 5) {
+    println(i);
+    i = i + 1;
+}

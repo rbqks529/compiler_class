@@ -1,0 +1,14 @@
+// Test 11: 팩토리얼
+// 목적: 재귀 함수 테스트
+
+fun factorial(n: Int): Int {
+    if (n <= 1) {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+
+println(factorial(5));
+println(factorial(6));
+println(factorial(7));

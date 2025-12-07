@@ -1,0 +1,14 @@
+// Test 02: 산술 연산
+// 목적: +, -, *, /, % 연산자 테스트
+
+val a = 10 + 5;
+val b = 10 - 3;
+val c = 4 * 5;
+val d = 20 / 4;
+val e = 10 % 3;
+
+println(a);
+println(b);
+println(c);
+println(d);
+println(e);

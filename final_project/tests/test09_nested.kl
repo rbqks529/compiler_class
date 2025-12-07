@@ -1,0 +1,12 @@
+// Test 09: 중첩 제어문
+// 목적: 중첩된 if와 while 테스트
+
+var i = 0;
+while (i < 3) {
+    var j = 0;
+    while (j < 2) {
+        println(i * 10 + j);
+        j = j + 1;
+    }
+    i = i + 1;
+}

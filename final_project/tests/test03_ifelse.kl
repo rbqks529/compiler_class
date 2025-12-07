@@ -1,0 +1,16 @@
+// Test 03: 조건문 (if-else)
+// 목적: if, else 키워드와 블록 실행 테스트
+
+val x = 10;
+
+if (x > 5) {
+    println(1);
+} else {
+    println(0);
+}
+
+if (x < 5) {
+    println(0);
+} else {
+    println(2);
+}

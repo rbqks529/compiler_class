@@ -1,0 +1,6 @@
+// Test 05: for 반복문
+// 목적: for in range 구문 테스트
+
+for (i in 1..5) {
+    println(i);
+}
